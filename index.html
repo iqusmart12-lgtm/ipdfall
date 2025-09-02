@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iPDFall — Powerful, Private, In‑Browser PDF Tools</title>
+  <meta name="description" content="iPDFall: Merge, split, compress, convert, reorder, rotate, watermark & more — 100% client‑side. Simple, fast, and private."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --glass: rgba(255,255,255,0.08);
+      --stroke: rgba(255,255,255,0.2);
+      --bg: #0c0c12;
+      --fg: #ffffff;
+      --muted: rgba(255,255,255,.8);
+    }
+    *{box-sizing:border-box}
+    html, body { height: 100%; }
+    body { font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif; background: var(--bg); color: var(--fg); margin:0; overflow-x:hidden; }
+
+    /* Floating 3D background canvas */
+    #bg3d { position: fixed; inset: 0; z-index: -2; }
+    /* Soft gradient overlay */
+    .gradient-overlay { position: fixed; inset: 0; z-index: -1; background: radial-gradient(1200px 700px at 10% 10%, rgba(255, 200, 255, 0.18), transparent), radial-gradient(900px 600px at 90% 10%, rgba(173, 216, 230, 0.18), transparent), radial-gradient(900px 600px at 50% 90%, rgba(144, 238, 144, 0.18), transparent); backdrop-filter: blur(18px); }
+
+    /* Glassy panels */
+    .glass { background: var(--glass); border: 1px solid var(--stroke); box-shadow: 0 10px 40px rgba(0,0,0,0.35); border-radius: 20px; }
+
+    .brand { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.02em; }
+
+    /* Header */
+    header{ position:sticky; top:0; z-index:5; backdrop-filter: blur(8px); background: linear-gradient(to bottom, rgba(12,12,18,.7), rgba(12,12,18,.35) 60%, transparent); }
+    .container{ max-width:1200px; margin:0 auto; padding:0 20px; }
+
+    /* Heart grid */
+    .heart-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:28px; align-items:start; }
+    .heart{ width: 180px; height: 180px; position:relative; margin: 0 auto; transform: rotate(-45deg); border-radius: 18px; cursor:pointer; transition: transform .18s ease, filter .2s ease; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .heart:hover{ transform: rotate(-45deg) translateY(-2px) scale(1.02); filter: brightness(1.05); }
+    .heart::before, .heart::after{ content:""; position:absolute; width: 180px; height: 180px; border-radius: 50%; }
+    .heart::before{ top:-90px; left:0; }
+    .heart::after{ left:90px; top:0; }
+    .heart .content{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:18px; transform: rotate(45deg); }
+    .heart .content span{ font-weight:800; line-height:1.15; font-size:18px; text-shadow: 0 2px 10px rgba(0,0,0,.4); }
+
+    /* Distinct colors */
+    .merge    { background:#ff6b6b; }
+    .merge::before,.merge::after{ background:#ff6b6b; }
+    .split    { background:#845ef7; }
+    .split::before,.split::after{ background:#845ef7; }
+    .compress { background:#20c997; }
+    .compress::before,.compress::after{ background:#20c997; }
+    .img2pdf  { background:#f6aa1c; }
+    .img2pdf::before,.img2pdf::after{ background:#f6aa1c; }
+    .pdf2img  { background:#3ec5ff; }
+    .pdf2img::before,.pdf2img::after{ background:#3ec5ff; }
+    .reorder  { background:#ff8fab; }
+    .reorder::before,.reorder::after{ background:#ff8fab; }
+    .watermark{ background:#5dd3b3; }
+    .watermark::before,.watermark::after{ background:#5dd3b3; }
+
+    /* Sections */
+    section{ padding: 24px 0; }
+    h2{ margin:0 0 8px; font-size: 40px; }
+    p.lead{ color: var(--muted); margin: 6px 0 0; }
+
+    .panel{ padding: 18px; }
+    .row{ display:grid; grid-template-columns: 1fr; gap: 14px; }
+    .row2{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media(min-width:900px){ .row{ grid-template-columns: 1fr 1fr; } }
+
+    .label{ display:block; font-weight:600; margin:6px 0; }
+    input[type=file], input[type=text], input[type=number], select, textarea{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color:#fff; }
+    .btn{ display:inline-flex; align-items:center; gap:8px; border:1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.1); padding:.7rem 1.1rem; border-radius:12px; font-weight:800; color:#fff; cursor:pointer; }
+    .btn:hover{ background: rgba(255,255,255,.18); }
+
+    .dropzone{ border:1.5px dashed rgba(255,255,255,.45); border-radius:14px; padding:16px; }
+
+    /* Thumbs */
+    .thumbs{ display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:10px; max-height: 320px; overflow:auto; }
+    .thumb{ position:relative; border:1px solid rgba(255,255,255,.2); border-radius:10px; overflow:hidden; }
+    .thumb .tools{ position:absolute; inset:auto 6px 6px 6px; display:flex; justify-content:space-between; gap:6px; }
+
+    footer{ padding: 28px 0 40px; color: var(--muted); }
+    a{ color:#fff; }
+  </style>
+</head>
+<body>
+  <canvas id="bg3d"></canvas>
+  <div class="gradient-overlay"></div>
+
+  <!-- Header / Branding -->
+  <header>
+    <div class="container" style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px;">
+      <div style="display:flex; align-items:center; gap:12px; user-select:none;">
+        <div class="glass" style="width:44px;height:44px;border-radius:14px;display:grid;place-items:center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>
+        </div>
+        <h1 class="brand" style="font-size:28px;font-weight:800;">iPDFall</h1>
+      </div>
+      <nav style="display:flex; gap:16px; font-weight:600;">
+        <a href="#features">Features</a>
+        <a href="#tools">Tools</a>
+        <a href="#contact">Contact</a>
+        <a href="#privacy">Privacy</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="container" id="features" style="padding:28px 0 10px;">
+    <h2>All your PDF tools in a heart‑beat.</h2>
+    <p class="lead">Click a heart to jump to a tool. Everything runs privately in your browser.</p>
+    <div class="heart-grid" style="margin-top:18px;">
+      <a href="#merge" class="heart merge"><div class="content"><span>Merge PDFs</span></div></a>
+      <a href="#split" class="heart split"><div class="content"><span>Split PDF</span></div></a>
+      <a href="#compress" class="heart compress"><div class="content"><span>Compress</span></div></a>
+      <a href="#img2pdf" class="heart img2pdf"><div class="content"><span>Images → PDF</span></div></a>
+      <a href="#pdf2img" class="heart pdf2img"><div class="content"><span>PDF → Images</span></div></a>
+      <a href="#reorder" class="heart reorder"><div class="content"><span>Reorder / Rotate</span></div></a>
+      <a href="#watermark" class="heart watermark"><div class="content"><span>Watermark</span></div></a>
+    </div>
+  </section>
+
+  <!-- Tools Panels -->
+  <section id="tools" class="container">
+    <div class="row">
+      <!-- Merge -->
+      <div id="merge" class="panel glass">
+        <h3>Merge PDFs</h3>
+        <p class="lead">Combine multiple PDFs into one.</p>
+        <div class="dropzone"><label class="label">Select PDFs</label><input type="file" id="mergeFiles" accept="application/pdf" multiple></div>
+        <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="btnMerge">Merge & Download</button>
+        </div>
+      </div>
+      <!-- Split -->
+      <div id="split" class="panel glass">
+        <h3>Split PDF</h3>
+        <p class="lead">Extract specific pages or ranges, e.g. <code>1,3,5-8</code>.</p>
+        <div class="dropzone">
+          <label class="label">Choose a PDF</label>
+          <input type="file" id="splitFile" accept="application/pdf">
+          <label class="label" for="splitRanges" style="margin-top:8px;">Pages</label>
+          <input type="text" id="splitRanges" placeholder="e.g., 1,3,5-8">
+        </div>
+        <div style="margin-top:10px;"><button class="btn" id="btnSplit">Split & Download</button></div>
+      </div>
+      <!-- Compress -->
+      <div id="compress" class="panel glass">
+        <h3>Compress PDF</h3>
+        <p class="lead">Rasterizes pages at lower quality for smaller file size (text becomes non‑selectable).</p>
+        <div class="dropzone">
+          <label class="label">Choose a PDF</label>
+          <input type="file" id="compressFile" accept="application/pdf">
+          <label class="label" style="margin-top:8px;">Quality <small>(0.2–0.92)</small></label>
+          <input type="range" id="compressQuality" min="0.2" max="0.92" step="0.02" value="0.7">
+        </div>
+        <div style="margin-top:10px;"><button class="btn" id="btnCompress">Compress & Download</button></div>
+      </div>
+      <!-- Images → PDF -->
+      <div id="img2pdf" class="panel glass">
+        <h3>Images → PDF</h3>
+        <p class="lead">Turn JPG/PNG images into a single multi‑page PDF.</p>
+        <div class="dropzone">
+          <label class="label">Select Images</label>
+          <input type="file" id="img2pdfFiles" accept="image/*" multiple>
+          <div class="row2" style="margin-top:10px;">
+            <label class="label">Page Size
+              <select id="img2pdfSize">
+                <option value="A4">A4</option>
+                <option value="Letter">Letter</option>
+                <option value="Fit">Fit to image</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div style="margin-top:10px;"><button class="btn" id="btnImg2Pdf">Create PDF</button></div>
+      </div>
+      <!-- PDF → Images -->
+      <div id="pdf2img" class="panel glass">
+        <h3>PDF → Images</h3>
+        <p class="lead">Export each page to PNG or JPG then download a ZIP.</p>
+        <div class="dropzone">
+          <label class="label">Choose a PDF</label>
+          <input type="file" id="pdf2imgFile" accept="application/pdf">
+          <div class="row2" style="margin-top:10px;">
+            <label class="label">Format
+              <select id="pdf2imgFmt"><option>PNG</option><option>JPG</option></select>
+            </label>
+            <label class="label">Scale (1–3)
+              <input type="number" id="pdf2imgScale" min="1" max="3" step="0.25" value="2">
+            </label>
+          </div>
+        </div>
+        <div style="margin-top:10px;"><button class="btn" id="btnPdf2Img">Export ZIP</button></div>
+      </div>
+      <!-- Reorder / Rotate / Delete -->
+      <div id="reorder" class="panel glass" style="grid-column:1/-1;">
+        <h3>Reorder, Rotate & Delete</h3>
+        <p class="lead">Load a PDF, then drag thumbnails to reorder. Rotate or delete pages, then export.</p>
+        <div class="dropzone">
+          <label class="label">Choose a PDF</label>
+          <input type="file" id="reorderFile" accept="application/pdf">
+        </div>
+        <div class="thumbs" id="thumbs" style="margin-top:10px;"></div>
+        <div style="margin-top:10px;"><button class="btn" id="btnExportOrder">Export New PDF</button></div>
+      </div>
+      <!-- Watermark -->
+      <div id="watermark" class="panel glass" style="grid-column:1/-1;">
+        <h3>Add Text Watermark</h3>
+        <p class="lead">Overlay semi‑transparent text on every page.</p>
+        <div class="dropzone">
+          <label class="label">Choose a PDF</label>
+          <input type="file" id="wmFile" accept="application/pdf">
+          <div class="row2" style="margin-top:10px;">
+            <label class="label">Text <input type="text" id="wmText" placeholder="WATERMARK"></label>
+            <label class="label">Opacity (0.1–1) <input type="number" id="wmOpacity" min="0.1" max="1" step="0.1" value="0.2"></label>
+            <label class="label">Angle (deg) <input type="number" id="wmAngle" value="-30"></label>
+          </div>
+        </div>
+        <div style="margin-top:10px;"><button class="btn" id="btnWatermark">Apply & Download</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How + Privacy -->
+  <section id="privacy" class="container">
+    <div class="glass panel"><strong>Privacy:</strong> all operations are client‑side. Close the tab and everything vanishes. After the first load, you can even use it offline.</div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="container">
+    <div class="glass panel" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+      <div>
+        <h3>Contact us</h3>
+        <p>Mobile: <a href="tel:+971561581606">+971 56 158 1606</a></p>
+        <p>Email: <a href="mailto:iqusmart12@gmail.com">iqusmart12@gmail.com</a></p>
+      </div>
+      <form onsubmit="event.preventDefault(); alert('Thanks! This demo form does not send data to a server.');" style="display:grid; gap:8px;">
+        <input required placeholder="Your name">
+        <input type="email" required placeholder="Your email">
+        <textarea rows="4" required placeholder="Message"></textarea>
+        <button class="btn">Send</button>
+      </form>
+    </div>
+  </section>
+
+  <footer class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+      <p>© <span id="year"></span> iPDFall. Built for the open web. Not affiliated with iLovePDF.</p>
+      <a href="#features">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <!-- JS Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js';</script>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+  <script>
+    // ==========================
+    // 3D BACKGROUND (Three.js)
+    // ==========================
+    (function(){
+      const canvas = document.getElementById('bg3d');
+      const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+      function resize(){
+        const w = window.innerWidth, h = window.innerHeight; renderer.setSize(w,h,false); camera.aspect = w/h; camera.updateProjectionMatrix();
+      }
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+      camera.position.set(0,0,4.2);
+      const light1 = new THREE.PointLight(0xffffff, 0.9); light1.position.set(5,5,5); scene.add(light1);
+      const light2 = new THREE.PointLight(0x88ccff, 0.6); light2.position.set(-4,-2,3); scene.add(light2);
+      const geom = new THREE.TorusKnotGeometry(1.6, 0.42, 220, 18);
+      const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness:0.3, roughness:0.25, envMapIntensity: 0.9 });
+      const mesh = new THREE.Mesh(geom, mat); scene.add(mesh);
+      const clock = new THREE.Clock();
+      function animate(){ const t = clock.getElapsedTime(); mesh.rotation.x = t*0.22; mesh.rotation.y = t*0.18; renderer.render(scene, camera); requestAnimationFrame(animate); }
+      window.addEventListener('resize', resize); resize(); animate();
+    })();
+
+    // ==========================
+    // UTILS
+    // ==========================
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+    const byName = (file) => file.name.replace(/\\s+/g,'_').replace(/\\.[^.]+$/, '');
+    const downloadBlob = (blob, filename) => saveAs(blob, filename);
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Read file(s) as ArrayBuffers
+    const readAsArrayBuffer = (file) => new Promise((res, rej)=>{ const fr = new FileReader(); fr.onload = ()=>res(fr.result); fr.onerror = rej; fr.readAsArrayBuffer(file); });
+
+    // ==========================
+    // MERGE TOOL
+    // ==========================
+    $('#btnMerge').addEventListener('click', async ()=>{
+      const files = Array.from($('#mergeFiles').files || []);
+      if(!files.length) return alert('Add PDFs to merge');
+      try{
+        const { PDFDocument } = PDFLib;
+        const out = await PDFDocument.create();
+        for(const f of files){
+          const data = await readAsArrayBuffer(f);
+          const src = await PDFDocument.load(data);
+          const copied = await out.copyPages(src, src.getPageIndices());
+          copied.forEach(p=> out.addPage(p));
+        }
+        const bytes = await out.save();
+        downloadBlob(new Blob([bytes], {type:'application/pdf'}), 'iPDFall-merge.pdf');
+      }catch(err){ console.error(err); alert('Merge failed: '+err.message); }
+    });
+
+    // ==========================
+    // SPLIT TOOL
+    // ==========================
+    function parseRanges(str, total){
+      const out = new Set();
+      str.split(',').map(s=>s.trim()).filter(Boolean).forEach(part=>{
+        if(/^[0-9]+$/.test(part)){ const n = parseInt(part); if(n>=1 && n<=total) out.add(n-1); }
+        else if(/^[0-9]+-[0-9]+$/.test(part)){ const [a,b] = part.split('-').map(x=>parseInt(x)); for(let i=Math.max(1,Math.min(a,b)); i<=Math.min(total, Math.max(a,b)); i++) out.add(i-1); }
+      });
+      return Array.from(out).sort((a,b)=>a-b);
+    }
+    $('#btnSplit').addEventListener('click', async ()=>{
+      const file = $('#splitFile').files[0];
+      const ranges = $('#splitRanges').value.trim();
+      if(!file) return alert('Choose a PDF to split');
+      try{
+        const data = await readAsArrayBuffer(file);
+        const { PDFDocument } = PDFLib;
+        const src = await PDFDocument.load(data);
+        const indices = ranges ? parseRanges(ranges, src.getPageCount()) : src.getPageIndices();
+        const out = await PDFDocument.create();
+        const copied = await out.copyPages(src, indices);
+        copied.forEach(p=> out.addPage(p));
+        const bytes = await out.save();
+        downloadBlob(new Blob([bytes], {type:'application/pdf'}), `${byName(file)}-split.pdf`);
+      }catch(err){ console.error(err); alert('Split failed: '+err.message); }
+    });
+
+    // ==========================
+    // COMPRESS (RASTERIZE)
+    // ==========================
+    async function renderPdfToCanvasArray(arrayBuffer, scale = 1.4){
+      const loadingTask = pdfjsLib.getDocument({data: arrayBuffer});
+      const pdf = await loadingTask.promise;
+      const canvases = [];
+      for(let p=1; p<=pdf.numPages; p++){
+        const page = await pdf.getPage(p);
+        const viewport = page.getViewport({scale});
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
+        await page.render({canvasContext: ctx, viewport}).promise;
+        canvases.push(canvas);
+      }
+      return canvases;
+    }
+    $('#btnCompress').addEventListener('click', async ()=>{
+      const file = $('#compressFile').files[0];
+      if(!file) return alert('Choose a PDF to compress');
+      const quality = parseFloat($('#compressQuality').value);
+      try{
+        const data = await readAsArrayBuffer(file);
+        const canvases = await renderPdfToCanvasArray(data, 1.4);
+        const { PDFDocument } = PDFLib;
+        const out = await PDFDocument.create();
+        for(const cv of canvases){
+          const jpgUrl = cv.toDataURL('image/jpeg', quality);
+          const jpg = await fetch(jpgUrl).then(r=>r.arrayBuffer());
+          const embedded = await out.embedJpg(jpg);
+          const page = out.addPage([embedded.width, embedded.height]);
+          page.drawImage(embedded, { x:0, y:0, width: embedded.width, height: embedded.height });
+        }
+        const bytes = await out.save({ useObjectStreams: true });
+        downloadBlob(new Blob([bytes], {type:'application/pdf'}), `${byName(file)}-compressed.pdf`);
+      }catch(err){ console.error(err); alert('Compress failed: '+err.message); }
+    });
+
+    // ==========================
+    // IMAGES → PDF
+    // ==========================
+    function pageSize(name){
+      const mm = (w,h)=>[w/25.4*72, h/25.4*72]; // convert mm to points
+      switch(name){
+        case 'A4': return mm(210,297);
+        case 'Letter': return [612, 792];
+        default: return null; // Fit
+      }
+    }
+    $('#btnImg2Pdf').addEventListener('click', async ()=>{
+      const files = Array.from($('#img2pdfFiles').files || []).sort((a,b)=> a.name.localeCompare(b.name));
+      if(!files.length) return alert('Select images');
+      try{
+        const { PDFDocument } = PDFLib;
+        const out = await PDFDocument.create();
+        const size = pageSize($('#img2pdfSize').value);
+        for(const f of files){
+          const buf = await readAsArrayBuffer(f);
+          const isPng = /png/i.test(f.type) || f.name.toLowerCase().endsWith('.png');
+          const img = isPng ? await out.embedPng(buf) : await out.embedJpg(buf);
+          const [pw, ph] = size || [img.width, img.height];
+          const page = out.addPage([pw, ph]);
+          // Fit image within page keeping aspect
+          const scale = Math.min(pw / img.width, ph / img.height);
+          const dw = img.width * scale, dh = img.height * scale;
+          page.drawImage(img, { x:(pw-dw)/2, y:(ph-dh)/2, width:dw, height:dh });
+        }
+        const bytes = await out.save();
+        downloadBlob(new Blob([bytes], {type:'application/pdf'}), 'images-to-pdf.pdf');
+      }catch(err){ console.error(err); alert('Images→PDF failed: '+err.message); }
+    });
+
+    // ==========================
+    // PDF → IMAGES (ZIP)
+    // ==========================
+    $('#btnPdf2Img').addEventListener('click', async ()=>{
+      const file = $('#pdf2imgFile').files[0]; if(!file) return alert('Choose a PDF');
+      const fmt = $('#pdf2imgFmt').value; const scale = Math.max(1, Math.min(3, parseFloat($('#pdf2imgScale').value)||2));
+      try{
+        const data = await readAsArrayBuffer(file);
+        const loadingTask = pdfjsLib.getDocument({data: data});
+        const pdf = await loadingTask.promise;
+        const zip = new JSZip();
+        for(let p=1; p<=pdf.numPages; p++){
+          const page = await pdf.getPage(p);
+          const viewport = page.getViewport({scale});
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+          await page.render({canvasContext: ctx, viewport}).promise;
+          const mime = (fmt==='JPG')? 'image/jpeg' : 'image/png';
+          const url = canvas.toDataURL(mime, 0.92);
+          const bstr = atob(url.split(',')[1]);
+          const u8 = new Uint8Array(bstr.length); for(let i=0;i<bstr.length;i++){u8[i]=bstr.charCodeAt(i);} 
+          zip.file(`page-${String(p).padStart(3,'0')}.${fmt.toLowerCase()}`, u8);
+        }
+        const content = await zip.generateAsync({type:'blob'});
+        downloadBlob(content, `${byName(file)}-pages.zip`);
+      }catch(err){ console.error(err); alert('PDF→Images failed: '+err.message); }
+    });
+
+    // ==========================
+    // REORDER / ROTATE / DELETE
+    // ==========================
+    let reorderState = { pdf: null, pages: [] }; // pages: {index, rotation, deleted}
+
+    async function loadThumbnails(file){
+      const data = await readAsArrayBuffer(file);
+      const loadingTask = pdfjsLib.getDocument({data});
+      const pdf = await loadingTask.promise; reorderState.pdf = pdf; reorderState.pages = [];
+      const cont = $('#thumbs'); cont.innerHTML = '';
+      for(let p=1; p<=pdf.numPages; p++){
+        const page = await pdf.getPage(p);
+        const viewport = page.getViewport({scale: 0.7});
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+        await page.render({canvasContext: ctx, viewport}).promise;
+        const wrap = document.createElement('div'); wrap.className='thumb'; wrap.dataset.idx = (p-1);
+        const tools = document.createElement('div'); tools.className='tools';
+        tools.innerHTML = `<div style="display:flex; gap:6px;"><button class='btn rotateL'>⟲</button><button class='btn rotateR'>⟳</button></div><div style="display:flex; gap:6px;"><button class='btn del'>Delete</button></div>`;
+        wrap.appendChild(canvas); wrap.appendChild(tools);
+        cont.appendChild(wrap);
+        reorderState.pages.push({index:p-1, rotation:0, deleted:false});
+      }
+      // Enable drag
+      Sortable.create($('#thumbs'), { animation: 150 });
+      // Wire actions
+      $('#thumbs').addEventListener('click', (e)=>{
+        const btn = e.target.closest('button'); if(!btn) return;
+        const item = e.target.closest('.thumb'); if(!item) return; const idx = Array.from($('#thumbs').children).indexOf(item);
+        if(btn.classList.contains('rotateL')){ reorderState.pages[idx].rotation = (reorderState.pages[idx].rotation - 90) % 360; item.classList.add('ring'); setTimeout(()=>item.classList.remove('ring'),250); }
+        if(btn.classList.contains('rotateR')){ reorderState.pages[idx].rotation = (reorderState.pages[idx].rotation + 90) % 360; item.classList.add('ring'); setTimeout(()=>item.classList.remove('ring'),250); }
+        if(btn.classList.contains('del')){ reorderState.pages[idx].deleted = !reorderState.pages[idx].deleted; item.style.opacity = reorderState.pages[idx].deleted? .35: 1; }
+      });
+    }
+    $('#reorderFile').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) loadThumbnails(f).catch(err=>{console.error(err); alert('Failed to load thumbnails: '+err.message);}); });
+
+    $('#btnExportOrder').addEventListener('click', async ()=>{
+      if(!reorderState.pdf) return alert('Load a PDF first');
+      try{
+        const arrayBuffer = await reorderState.pdf.getData();
+        const { PDFDocument, degrees } = PDFLib;
+        const src = await PDFDocument.load(arrayBuffer);
+        // Map current DOM order
+        const order = Array.from($('#thumbs').children).map(el=> parseInt(el.dataset.idx));
+        const out = await PDFDocument.create();
+        const kept = order.map(i=> reorderState.pages[i]).filter(p=> !p.deleted);
+        const copied = await out.copyPages(src, kept.map(p=> p.index));
+        copied.forEach((p, i) => { const rot = kept[i].rotation; if(rot){ p.setRotation(degrees(rot)); } out.addPage(p); });
+        const bytes = await out.save();
+        downloadBlob(new Blob([bytes], {type:'application/pdf'}), 'reordered.pdf');
+      }catch(err){ console.error(err); alert('Export failed: '+err.message); }
+    });
+
+    // ==========================
+    // WATERMARK
+    // ==========================
+    $('#btnWatermark').addEventListener('click', async ()=>{
+      const file = $('#wmFile').files[0]; if(!file) return alert('Choose a PDF');
+      const text = $('#wmText').value || 'WATERMARK';
+      const opacity = Math.max(0.05, Math.min(1, parseFloat($('#wmOpacity').value)||0.2));
+      const angle = parseFloat($('#wmAngle').value)||-30;
+      try{
+        const { PDFDocument, StandardFonts, rgb, degrees } = PDFLib;
+        const data = await readAsArrayBuffer(file);
+        const pdfDoc = await PDFDocument.load(data);
+        const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const pages = pdfDoc.getPages();
+        pages.forEach(page => {
+          const { width, height } = page.getSize();
+          const fontSize = Math.max(36, Math.min(width, height)/6);
+          page.drawText(text, { x: width/6, y: height/2, size: fontSize, font, color: rgb(1,1,1), opacity, rotate: degrees(angle) });
+        });
+        const bytes = await pdfDoc.save();
+        downloadBlob(new Blob([bytes], {type:'application/pdf'}), `${byName(file)}-watermarked.pdf`);
+      }catch(err){ console.error(err); alert('Watermark failed: '+err.message); }
+    });
+  </script>
+</body>
+</html>
