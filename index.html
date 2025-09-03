@@ -1,36 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>iPDFall</title>
-  <link rel="stylesheet" href="assets/style.css">
-  <script src="assets/main.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iPDFall — Powerful, Private, In-Browser PDF Tools</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="splash" class="splash">
-    <h1 class="splash-title">iPDFall</h1>
-    <p class="splash-subtitle" id="splash-typing"></p>
+  <!-- Splash Screen -->
+  <div id="splashScreen" class="splash">
+    <h1 class="splash-title">Welcome to iPDFall</h1>
+    <button id="skipIntro" class="skip-btn">Skip Intro</button>
   </div>
 
-  <header>
-    <h2>Welcome to iPDFall</h2>
-  </header>
+  <!-- Main Content -->
+  <div id="mainContent" style="display:none;">
+    <header>
+      <h1>iPDFall Homepage</h1>
+    </header>
+    <section>
+      <p>All PDF tools in your browser — merge, split, compress, and more.</p>
+    </section>
+  </div>
 
-  <main>
-    <section id="features">
-      <div class="feature">❤️ Merge PDFs</div>
-      <div class="feature">❤️ Split PDFs</div>
-      <div class="feature">❤️ Compress PDFs</div>
-    </section>
-    <section id="contact">
-      <h3>Contact Us</h3>
-      <p>📞 +971561581606</p>
-      <p>📧 iqusmart12@gmail.com</p>
-    </section>
-    <section id="gallery-link">
-      <a href="gallery.html">📸 View Gallery</a>
-    </section>
-  </main>
+  <!-- Startup Chime -->
+  <audio id="startupChime" src="assets/startup_chime.mp3" preload="auto"></audio>
+
+  <script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,53 @@
+body {
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#0c0c12;
+  color:white;
+  overflow:hidden;
+}
+
+.splash {
+  position:fixed;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:#111;
+  z-index:1000;
+  animation:fadeOut 8s forwards;
+}
+
+.splash-title {
+  font-size:2.5rem;
+  background:linear-gradient(90deg, #ff6b6b, #f6aa1c, #3ec5ff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:shine 2s infinite linear;
+}
+
+.skip-btn {
+  margin-top:20px;
+  padding:8px 16px;
+  border:1px solid rgba(255,255,255,0.6);
+  background:transparent;
+  color:white;
+  border-radius:20px;
+  cursor:pointer;
+  transition:background .3s;
+}
+
+.skip-btn:hover {
+  background:rgba(255,255,255,0.15);
+}
+
+@keyframes fadeOut {
+  0% {opacity:1;}
+  90% {opacity:1;}
+  100% {opacity:0; visibility:hidden;}
+}
+
+@keyframes shine {
+  from { background-position:0%; }
+  to { background-position:200%; }
+}
