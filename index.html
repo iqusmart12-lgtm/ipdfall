@@ -1,205 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>iPDFall — Powerful, Private, In-Browser PDF Tools</title>
-  <meta name="description" content="iPDFall: Merge, split, compress, convert, reorder, rotate, watermark & more — 100% client-side. Simple, fast, and private."/>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css" />
-  <!-- Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js';</script>
-  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iPDFall</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/main.js" defer></script>
 </head>
 <body>
-  <!-- Splash Screen -->
-  <div id="splash">
-    <div class="splash-inner">
-      <div class="logo">iPDFall</div>
-      <div class="spinner" aria-label="Loading"></div>
-      <div class="tag">All your PDF tools — client-side.</div>
-    </div>
+  <div id="splash" class="splash">
+    <h1 class="splash-title">iPDFall</h1>
+    <p class="splash-subtitle" id="splash-typing"></p>
   </div>
 
-  <!-- Background -->
-  <canvas id="bg3d"></canvas>
-  <div class="gradient-overlay"></div>
-
-  <!-- Header -->
   <header>
-    <div class="container headerbar">
-      <div class="brand-side">
-        <div class="glyph" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>
-        </div>
-        <h1 class="brand">iPDFall</h1>
-      </div>
-      <nav class="topnav">
-        <a href="#features">Features</a>
-        <a href="#tools">Tools</a>
-        <a href="#contact">Contact</a>
-        <a href="#privacy">Privacy</a>
-      </nav>
-    </div>
+    <h2>Welcome to iPDFall</h2>
   </header>
 
-  <!-- Features hearts -->
-  <section class="container" id="features">
-    <h2>All your PDF tools in a heart-beat.</h2>
-    <p class="lead">Tap a heart to jump to a tool. Everything runs privately in your browser.</p>
-    <div class="heart-grid">
-      <a href="#merge" class="halfheart merge"><span>Merge PDFs</span></a>
-      <a href="#split" class="halfheart split"><span>Split PDF</span></a>
-      <a href="#compress" class="halfheart compress"><span>Compress</span></a>
-      <a href="#img2pdf" class="halfheart img2pdf"><span>Images → PDF</span></a>
-      <a href="#pdf2img" class="halfheart pdf2img"><span>PDF → Images</span></a>
-      <a href="#reorder" class="halfheart reorder"><span>Reorder / Rotate</span></a>
-      <a href="#watermark" class="halfheart watermark"><span>Watermark</span></a>
-    </div>
-  </section>
-
-  <!-- Tools -->
-  <section id="tools" class="container">
-    <div class="row">
-      <!-- Merge -->
-      <div id="merge" class="panel glass">
-        <h3>Merge PDFs</h3>
-        <p class="lead">Combine multiple PDFs into one.</p>
-        <div class="dropzone"><label class="label">Select PDFs</label><input type="file" id="mergeFiles" accept="application/pdf" multiple></div>
-        <div class="actions"><button class="btn" id="btnMerge">Merge & Download</button></div>
-      </div>
-      <!-- Split -->
-      <div id="split" class="panel glass">
-        <h3>Split PDF</h3>
-        <p class="lead">Extract specific pages or ranges, e.g. <code>1,3,5-8</code>.</p>
-        <div class="dropzone">
-          <label class="label">Choose a PDF</label>
-          <input type="file" id="splitFile" accept="application/pdf">
-          <label class="label" for="splitRanges">Pages</label>
-          <input type="text" id="splitRanges" placeholder="e.g., 1,3,5-8">
-        </div>
-        <div class="actions"><button class="btn" id="btnSplit">Split & Download</button></div>
-      </div>
-      <!-- Compress -->
-      <div id="compress" class="panel glass">
-        <h3>Compress PDF</h3>
-        <p class="lead">Rasterizes pages at lower quality for smaller size (text becomes non-selectable).</p>
-        <div class="dropzone">
-          <label class="label">Choose a PDF</label>
-          <input type="file" id="compressFile" accept="application/pdf">
-          <label class="label">Quality <small>(0.2–0.92)</small></label>
-          <input type="range" id="compressQuality" min="0.2" max="0.92" step="0.02" value="0.7">
-        </div>
-        <div class="actions"><button class="btn" id="btnCompress">Compress & Download</button></div>
-      </div>
-      <!-- Images → PDF -->
-      <div id="img2pdf" class="panel glass">
-        <h3>Images → PDF</h3>
-        <p class="lead">Turn JPG/PNG images into a single multi-page PDF.</p>
-        <div class="dropzone">
-          <label class="label">Select Images</label>
-          <input type="file" id="img2pdfFiles" accept="image/*" multiple>
-          <div class="row2">
-            <label class="label">Page Size
-              <select id="img2pdfSize">
-                <option value="A4">A4</option>
-                <option value="Letter">Letter</option>
-                <option value="Fit">Fit to image</option>
-              </select>
-            </label>
-          </div>
-        </div>
-        <div class="actions"><button class="btn" id="btnImg2Pdf">Create PDF</button></div>
-      </div>
-      <!-- PDF → Images -->
-      <div id="pdf2img" class="panel glass">
-        <h3>PDF → Images</h3>
-        <p class="lead">Export each page to PNG or JPG then download a ZIP.</p>
-        <div class="dropzone">
-          <label class="label">Choose a PDF</label>
-          <input type="file" id="pdf2imgFile" accept="application/pdf">
-          <div class="row2">
-            <label class="label">Format
-              <select id="pdf2imgFmt"><option>PNG</option><option>JPG</option></select>
-            </label>
-            <label class="label">Scale (1–3)
-              <input type="number" id="pdf2imgScale" min="1" max="3" step="0.25" value="2">
-            </label>
-          </div>
-        </div>
-        <div class="actions"><button class="btn" id="btnPdf2Img">Export ZIP</button></div>
-      </div>
-      <!-- Reorder / Rotate / Delete -->
-      <div id="reorder" class="panel glass" style="grid-column:1/-1;">
-        <h3>Reorder, Rotate & Delete</h3>
-        <p class="lead">Load a PDF, then drag thumbnails to reorder. Rotate or delete pages, then export.</p>
-        <div class="dropzone">
-          <label class="label">Choose a PDF</label>
-          <input type="file" id="reorderFile" accept="application/pdf">
-        </div>
-        <div class="thumbs" id="thumbs"></div>
-        <div class="actions"><button class="btn" id="btnExportOrder">Export New PDF</button></div>
-      </div>
-      <!-- Watermark -->
-      <div id="watermark" class="panel glass" style="grid-column:1/-1;">
-        <h3>Add Text Watermark</h3>
-        <p class="lead">Overlay semi-transparent text on every page.</p>
-        <div class="dropzone">
-          <label class="label">Choose a PDF</label>
-          <input type="file" id="wmFile" accept="application/pdf">
-          <div class="row2">
-            <label class="label">Text <input type="text" id="wmText" placeholder="WATERMARK"></label>
-            <label class="label">Opacity (0.1–1) <input type="number" id="wmOpacity" min="0.1" max="1" step="0.1" value="0.2"></label>
-            <label class="label">Angle (deg) <input type="number" id="wmAngle" value="-30"></label>
-          </div>
-        </div>
-        <div class="actions"><button class="btn" id="btnWatermark">Apply & Download</button></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Privacy -->
-  <section id="privacy" class="container">
-    <div class="glass panel"><strong>Privacy:</strong> all operations are client-side. Close the tab and everything vanishes. After first load, you can even use it offline.</div>
-  </section>
-
-  <!-- Contact -->
-  <section id="contact" class="container">
-    <div class="glass panel contact-grid">
-      <div>
-        <h3>Contact us</h3>
-        <p>Mobile: <a href="tel:+971561581606">+971 56 158 1606</a></p>
-        <p>Email: <a href="mailto:iqusmart12@gmail.com">iqusmart12@gmail.com</a></p>
-      </div>
-      <form onsubmit="event.preventDefault(); alert('Thanks! This demo form does not send data to a server.');" class="contact-form">
-        <input required placeholder="Your name">
-        <input type="email" required placeholder="Your email">
-        <textarea rows="4" required placeholder="Message"></textarea>
-        <button class="btn">Send</button>
-      </form>
-    </div>
-  </section>
-
-  <footer class="container footer">
-    <p>© <span id="year"></span> iPDFall. Built for the open web. Not affiliated with iLovePDF.</p>
-    <a href="#features">Back to top ↑</a>
-  </footer>
-
-  <!-- App scripts -->
-  <script src="js/main.js"></script>
-  <script src="js/pdf-merge.js"></script>
-  <script src="js/pdf-split.js"></script>
-  <script src="js/pdf-compress.js"></script>
-  <script src="js/img-to-pdf.js"></script>
-  <script src="js/pdf-to-img.js"></script>
-  <script src="js/pdf-reorder.js"></script>
-  <script src="js/pdf-watermark.js"></script>
+  <main>
+    <section id="features">
+      <div class="feature">❤️ Merge PDFs</div>
+      <div class="feature">❤️ Split PDFs</div>
+      <div class="feature">❤️ Compress PDFs</div>
+    </section>
+    <section id="contact">
+      <h3>Contact Us</h3>
+      <p>📞 +971561581606</p>
+      <p>📧 iqusmart12@gmail.com</p>
+    </section>
+    <section id="gallery-link">
+      <a href="gallery.html">📸 View Gallery</a>
+    </section>
+  </main>
 </body>
 </html>
